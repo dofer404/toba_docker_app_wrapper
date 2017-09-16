@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+DIRBIN=`dirname $0`
+DIRPROY=$DIRBIN/..
+DIRAPP=$DIRPROY/app
+ARCHIVO_LOCK_DEPLOY1=$DIRBIN/nombre_proyecto
+ARCHIVO_LOCK_DEPLOY2=$DIRAPP/nombre_proyecto
+ARCHIVO_LOCK_DEPLOY=$ARCHIVO_LOCK_DEPLOY1
+
+if [ -f $ARCHIVO_LOCK_DEPLOY ];
+then
+LOCKED='TRUE'
+fi
+
+ARCHIVO_LOCK_DEPLOY=$ARCHIVO_LOCK_DEPLOY2
+
+if [ -f $ARCHIVO_LOCK_DEPLOY ];
+then
+LOCKED='TRUE'
+fi
+
+if [ $LOCKED ];
+then
+  echo ""
+  echo "Error: Se encontró el archivo '$ARCHIVO_LOCK_DEPLOY'"
+  echo " - debe modificar el archivo ingresando el nombre del proyecto y"
+  echo " - debe mover el archivo a './app/'"
+  echo ""
+  echo "Establezca el nombre del proyecto usando './scripts/proyecto_set_nombre'"
+  echo ""
+  echo "Si el nombre del proyecto ya está establecido simplemente borre los archivos '$ARCHIVO_LOCK_DEPLOY1' y  '$ARCHIVO_LOCK_DEPLOY2'"
+  echo ""
+
+  exit 1
+fi
+
+$DIRBIN/docker_recrear_contenedores && sleep 10 && $DIRBIN/app_restaurar_bds

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+DIRBIN=`dirname $0`
+
+$DIRBIN/docker_compose_up
+$DIRBIN/docker_iniciar_contenedor

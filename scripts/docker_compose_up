@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+DIRPROY=`dirname $0`/../
+DIRAPP=$DIRPROY/app
+
+cd $DIRAPP
+../scripts/app_nombre_proyecto_seteado && docker-compose up -d && exit 0
+
+exit 1

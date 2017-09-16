@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+DIRBIN=`dirname $0`
+DIRPROY=$DIRBIN/..
+DIRAPP=$DIRPROY/app
+CONTENEDORAPP=`cat $DIRPROY/NOMBRE_PROYECTO`
+
+docker exec -it $CONTENEDORAPP bash

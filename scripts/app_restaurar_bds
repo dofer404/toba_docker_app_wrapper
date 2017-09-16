@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+DIRBD=`dirname $0`/../bd
+
+$DIRBD/bds_backup_restaurar.sh
