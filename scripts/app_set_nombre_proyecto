@@ -12,13 +12,9 @@ then
 
   DOCKERCOMPOSEFILE=$DIRAPP/docker-compose.yml
   COMPOSERFILE=$DIRAPP/composer.json
-  EXPORTARFILE=$DIRAPP/bin/exportar
-  REGENERARFILE=$DIRAPP/bin/regenerar
 
   DOCKERCOMPOSEFILE_OK=$(grep "<NOMBRE\ PROYECTO>" $DOCKERCOMPOSEFILE)
   COMPOSERFILE_OK=$(grep "siu-toba\/template-proyecto-toba" $COMPOSERFILE)
-  EXPORTARFILE_OK=$(grep "<NOMBRE\ PROYECTO>" $EXPORTARFILE)
-  REGENERARFILE_OK=$(grep "<NOMBRE\ PROYECTO>" $REGENERARFILE)
 
   if [ ! "$DOCKERCOMPOSEFILE_OK" ];
   then
@@ -30,22 +26,10 @@ then
     echo "Error: $COMPOSERFILE no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
     exit 1
   fi
-  if [ ! "$EXPORTARFILE_OK" ];
-  then
-    echo "Error: $EXPORTARFILE no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
-    exit 1
-  fi
-  if [ ! "$REGENERARFILE_OK" ];
-  then
-    echo "Error: $REGENERARFILE no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
-    exit 1
-  fi
 
-  cp $DOCKERCOMPOSEFILE $EXPORTARFILE $REGENERARFILE $COMPOSERFILE $DIRBIN/aux/
+  cp $DOCKERCOMPOSEFILE $COMPOSERFILE $DIRBIN/aux/
 
   sed -i "s/<NOMBRE\ PROYECTO>/$NOMBREPROYECTO/g" $DOCKERCOMPOSEFILE
-  sed -i "s/<NOMBRE\ PROYECTO>/$NOMBREPROYECTO/g" $EXPORTARFILE
-  sed -i "s/<NOMBRE\ PROYECTO>/$NOMBREPROYECTO/g" $REGENERARFILE
 
   # siu-toba/template-proyecto-toba
   sed -i "s/siu-toba\/template-proyecto-toba/$NOMBREPROYECTO/g" $COMPOSERFILE
