@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+DIRBIN=`dirname $0`
+DIRPROY=$DIRBIN/..
+DIRAPP=$DIRPROY/app
+DIRBD=$DIRPROY/bd
+
+# APP
+  DOCKERCOMPOSEFILE=$DIRAPP/docker-compose.yml
+  COMPOSERFILE=$DIRAPP/composer.json
+
+  DOCKERCOMPOSEFILE_OK=$(grep "<NOMBRE\ PROYECTO>" $DOCKERCOMPOSEFILE)
+  COMPOSERFILE_OK=$(grep "siu-toba\/template-proyecto-toba" $COMPOSERFILE)
+  ERRORPLACEHOLDER="contiene los placeholders necesarios para insertar el nombre. ya estableció el nombre del proyecto?"
+
+  if [ "$DOCKERCOMPOSEFILE_OK" ];
+  then
+    echo "Error en $DOCKERCOMPOSEFILE: $ERRORPLACEHOLDER"
+    exit 1
+  fi
+  if [ "$COMPOSERFILE_OK" ];
+  then
+    echo "Error en $COMPOSERFILE: $ERRORPLACEHOLDER"
+    exit 1
+  fi
+
+# BD
+  CREARBDFILE=$DIRBD/bd_app_crear.sql
+  CREARBDTOBAFILE_SQL=$DIRBD/bd_toba_crear.sql
+  RESTAURARBKBDSFILE=$DIRBD/bds_backup_restaurar.sh
+  CREARBKBDSFILE=$DIRBD/bds_backup_crear.sh
+
+  CREARBDFILE_OK=$(grep "<NOMBRE\ BASEDEDATOS>" $CREARBDFILE)
+  CREARBDTOBAFILE_SQL_OK=$(grep "<NOMBRE\ BASEDEDATOSTOBA>" $CREARBDTOBAFILE_SQL)
+  RESTAURARBKBDSFILE_OK=$(grep "<NOMBRE\ BASEDEDATOSTOBA>" $RESTAURARBKBDSFILE)
+  CREARBKBDSFILE_OK=$(grep "<NOMBRE\ BASEDEDATOSTOBA>" $CREARBKBDSFILE)
+
+  MSG_SIN_PLACEHOLDERS="contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
+  if [ "$CREARBDFILE_OK" ];
+  then
+    echo "Error en $CREARBDFILE: $MSG_SIN_PLACEHOLDERS"
+    exit 1
+  fi
+  if [ "$CREARBDTOBAFILE_SQL_OK" ];
+  then
+    echo "Error en $CREARBDTOBAFILE_SQL: $MSG_SIN_PLACEHOLDERS"
+    exit 1
+  fi
+  if [ "$RESTAURARBKBDSFILE_OK" ];
+  then
+    echo "Error en $RESTAURARBKBDSFILE: $MSG_SIN_PLACEHOLDERS"
+    exit 1
+  fi
+  if [ "$CREARBKBDSFILE_OK" ];
+  then
+    echo "Error en $CREARBKBDSFILE: $MSG_SIN_PLACEHOLDERS"
+    exit 1
+  fi
+
+exit 0

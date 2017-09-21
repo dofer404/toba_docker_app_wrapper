@@ -18,8 +18,10 @@ then
   else
     NOMBRE_BASEDEDATOSTOBA=$NOMBRE_BASEDEDATOSTOBA_DEFECTO
 
+    echo ""
     echo "Advertencia: no existe el archivo '$ARCH_NOMBRE_BASEDEDATOSTOBA':"
-    echo " - Como nombre de la base de datos de toba se usa: $NOMBRE_BASEDEDATOSTOBA_DEFECTO"
+    echo " Como nombre de la base de datos de toba se usa: $NOMBRE_BASEDEDATOSTOBA_DEFECTO"
+    echo ""
   fi
 
   CREARBDFILE=$DIRBD/bd_app_crear.sql

@@ -37,4 +37,13 @@ then
   exit 1
 fi
 
-$DIRBIN/docker_recrear_contenedores && sleep 10 && $DIRBIN/app_restaurar_bds
+if [[ "$1" == "sudo" ]];
+then
+  SUDO='sudo'
+else
+  SUDO=''
+  echo "!No se usa sudo: para usar sudo invoque al script así\$ $(basename $0) sudo"
+  echo ""
+fi
+
+$DIRBIN/proyecto_isset_nombre && $SUDO $DIRBIN/docker_recrear_contenedores && sleep 10 && $DIRBIN/app_restaurar_bds
