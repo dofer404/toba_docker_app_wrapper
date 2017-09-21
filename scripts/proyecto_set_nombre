@@ -2,4 +2,4 @@
 
 DIRBIN=`dirname $0`/
 
-$DIRBIN/app_set_nombre_proyecto && $DIRBIN/bd_set_nombre_bd
+$DIRBIN/app_set_nombre_proyecto $1 && $DIRBIN/bd_set_nombre_bd

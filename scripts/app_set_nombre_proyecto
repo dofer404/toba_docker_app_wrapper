@@ -4,40 +4,50 @@ DIRBIN=`dirname $0`
 DIRPROY=$DIRBIN/..
 DIRAPP=$DIRPROY/app
 DIRBD=$DIRPROY/bd
-ARCHIVO_NOMBRE_PROYECTO="$DIRAPP/nombre_proyecto"
+ARCHIVO_NOMBRE_PROYECTO_APP="$DIRAPP/nombre_proyecto"
+ARCHIVO_NOMBRE_PROYECTO="$DIRPROY/NOMBRE_PROYECTO"
+ARCH_NOMBRE_BASEDEDATOS_AUTO="$DIRPROY/NOMBRE_BASEDEDATOS_AUTO"
 
-if [ -f $ARCHIVO_NOMBRE_PROYECTO ];
+if [ "$1" ];
 then
-  NOMBREPROYECTO=$(cat $ARCHIVO_NOMBRE_PROYECTO)
-
-  DOCKERCOMPOSEFILE=$DIRAPP/docker-compose.yml
-  COMPOSERFILE=$DIRAPP/composer.json
-
-  DOCKERCOMPOSEFILE_OK=$(grep "<NOMBRE\ PROYECTO>" $DOCKERCOMPOSEFILE)
-  COMPOSERFILE_OK=$(grep "siu-toba\/template-proyecto-toba" $COMPOSERFILE)
-
-  if [ ! "$DOCKERCOMPOSEFILE_OK" ];
+  NOMBREPROYECTO=$1
+else
+  if [ -f $ARCHIVO_NOMBRE_PROYECTO_APP ];
   then
-    echo "Error: $DOCKERCOMPOSEFILE: no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
+    NOMBREPROYECTO=$(cat $ARCHIVO_NOMBRE_PROYECTO_APP)
+    rm $ARCHIVO_NOMBRE_PROYECTO_APP
+  else
+    echo "No se puede nombrar el proyecto porque no existe el archivo '$(realpath --relative-to="$DIRPROY" $ARCHIVO_NOMBRE_PROYECTO_APP)' y no ha indicado el nombre de proyecto como primer argumento"
     exit 1
   fi
-  if [ ! "$COMPOSERFILE_OK" ];
-  then
-    echo "Error: $COMPOSERFILE no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
-    exit 1
-  fi
-
-  cp $DOCKERCOMPOSEFILE $COMPOSERFILE $DIRBIN/aux/
-
-  sed -i "s/<NOMBRE\ PROYECTO>/$NOMBREPROYECTO/g" $DOCKERCOMPOSEFILE
-
-  # siu-toba/template-proyecto-toba
-  sed -i "s/siu-toba\/template-proyecto-toba/$NOMBREPROYECTO/g" $COMPOSERFILE
-
-  rm $ARCHIVO_NOMBRE_PROYECTO
-
-  exit 0
 fi
 
-echo "No se puede nombrar el proyecto porque no existe el archivo '$ARCHIVO_NOMBRE_PROYECTO'"
-exit 1
+echo $NOMBREPROYECTO > $ARCHIVO_NOMBRE_PROYECTO
+
+DOCKERCOMPOSEFILE=$DIRAPP/docker-compose.yml
+COMPOSERFILE=$DIRAPP/composer.json
+
+DOCKERCOMPOSEFILE_OK=$(grep "<NOMBRE\ PROYECTO>" $DOCKERCOMPOSEFILE)
+COMPOSERFILE_OK=$(grep "siu-toba\/template-proyecto-toba" $COMPOSERFILE)
+
+if [ ! "$DOCKERCOMPOSEFILE_OK" ];
+then
+  echo "Error: $(realpath --relative-to="$DIRPROY" $DOCKERCOMPOSEFILE): no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
+  exit 2
+fi
+if [ ! "$COMPOSERFILE_OK" ];
+then
+  echo "Error: $(realpath --relative-to="$DIRPROY" $COMPOSERFILE) no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
+  exit 3
+fi
+
+cp $DOCKERCOMPOSEFILE $COMPOSERFILE $DIRBIN/aux/
+
+sed -i "s/<NOMBRE\ PROYECTO>/$NOMBREPROYECTO/g" $DOCKERCOMPOSEFILE
+
+sed -n 's/.*TOBA_BASE_NOMBRE[^:]*: *\([a-zA-Z]*\)/\1/p' $DOCKERCOMPOSEFILE > $ARCH_NOMBRE_BASEDEDATOS_AUTO
+
+# siu-toba/template-proyecto-toba
+sed -i "s/siu-toba\/template-proyecto-toba/$NOMBREPROYECTO/g" $COMPOSERFILE
+
+exit 0
