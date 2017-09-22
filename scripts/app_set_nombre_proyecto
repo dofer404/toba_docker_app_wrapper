@@ -6,7 +6,11 @@ DIRAPP=$DIRPROY/app
 DIRBD=$DIRPROY/bd
 ARCHIVO_NOMBRE_PROYECTO_APP="$DIRAPP/nombre_proyecto"
 ARCHIVO_NOMBRE_PROYECTO="$DIRPROY/NOMBRE_PROYECTO"
-ARCH_NOMBRE_BASEDEDATOS_AUTO="$DIRPROY/NOMBRE_BASEDEDATOS_AUTO"
+ARCH_NOMBRE_BASEDEDATOS_TOBA="$DIRPROY/NOMBRE_BASEDEDATOSTOBA"
+ARCHIVO_TOBA_BASES_INI_GENERICO="$DIRBIN/aux/bases_generico.ini"
+ARCHIVO_TOBA_BASES_INI_READY="$DIRBIN/aux/bases.ini"
+ARCHIVO_TOBA_BASES_INI_BACKUP="$DIRBIN/aux/bases_BAK.ini"
+ARCHIVO_TOBA_BASES_INI_APP="$DIRAPP/instalacion/bases.ini"
 
 if [ "$1" ];
 then
@@ -22,7 +26,11 @@ else
   fi
 fi
 
-echo $NOMBREPROYECTO > $ARCHIVO_NOMBRE_PROYECTO
+if [ -f $ARCHIVO_TOBA_BASES_INI_BACKUP ];
+then
+  echo "Error: Existe un backup en $(realpath --relative-to="$DIRPROY" $ARCHIVO_TOBA_BASES_INI_BACKUP) del archivo bases.ini, eliminelo si no lo necesita antes de continuar."
+  exit 2
+fi
 
 DOCKERCOMPOSEFILE=$DIRAPP/docker-compose.yml
 COMPOSERFILE=$DIRAPP/composer.json
@@ -33,21 +41,25 @@ COMPOSERFILE_OK=$(grep "siu-toba\/template-proyecto-toba" $COMPOSERFILE)
 if [ ! "$DOCKERCOMPOSEFILE_OK" ];
 then
   echo "Error: $(realpath --relative-to="$DIRPROY" $DOCKERCOMPOSEFILE): no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
-  exit 2
+  exit 3
 fi
 if [ ! "$COMPOSERFILE_OK" ];
 then
   echo "Error: $(realpath --relative-to="$DIRPROY" $COMPOSERFILE) no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
-  exit 3
+  exit 4
 fi
 
+if [ -f $ARCHIVO_TOBA_BASES_INI_APP ];
+then
+  cp $ARCHIVO_TOBA_BASES_INI_APP $ARCHIVO_TOBA_BASES_INI_BACKUP
+fi
 cp $DOCKERCOMPOSEFILE $COMPOSERFILE $DIRBIN/aux/
 
-sed -i "s/<NOMBRE\ PROYECTO>/$NOMBREPROYECTO/g" $DOCKERCOMPOSEFILE
-
-sed -n 's/.*TOBA_BASE_NOMBRE[^:]*: *\([a-zA-Z]*\)/\1/p' $DOCKERCOMPOSEFILE > $ARCH_NOMBRE_BASEDEDATOS_AUTO
+echo $NOMBREPROYECTO > $ARCHIVO_NOMBRE_PROYECTO
 
 # siu-toba/template-proyecto-toba
 sed -i "s/siu-toba\/template-proyecto-toba/$NOMBREPROYECTO/g" $COMPOSERFILE
-
+sed -i "s/<NOMBRE\ PROYECTO>/$NOMBREPROYECTO/g" $DOCKERCOMPOSEFILE
+sed -n 's/.*TOBA_BASE_NOMBRE[^:]*: *\([a-zA-Z]*\)/\1/p' $DOCKERCOMPOSEFILE > $ARCH_NOMBRE_BASEDEDATOS_TOBA
+sed "s/<NOMBRE\ PROYECTO>/$NOMBREPROYECTO/g" $ARCHIVO_TOBA_BASES_INI_GENERICO > $ARCHIVO_TOBA_BASES_INI_READY
 exit 0
