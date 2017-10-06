@@ -1,0 +1,11 @@
+echo " == Script para ejecución en la maquina HOST == "
+echo "Se intentará instalar Docker con: curl -fsSL https://get.docker.com/ | sh"
+echo ""
+echo "Intentando..."
+echo ""
+set -x
+curl -fsSL https://get.docker.com/ | sh
+set +x
+echo ""
+echo "Fin"
+echo ""
