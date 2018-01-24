@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DIRBIN=`dirname $0`
+DIRBIN=$(dirname $0)
 DIRPROY=$DIRBIN/..
 DIRAPP=$DIRPROY/app
 ARCHIVO_LOCK_DEPLOY1=$DIRBIN/nombre_proyecto

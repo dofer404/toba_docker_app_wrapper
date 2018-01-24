@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ ! $ENTORNO_SETEADO ]; then
+	$(dirname $0)/bd $(basename $0)
+	exit $?
+fi
+
+echo "! Atención se va a borrar la base de datos POR COMPLETO!"
+echo "! Incluidos todos los esquemas!"
+echo "Se recrea la base de datos por completo"
+$CMD_CREARBD && $CMD_RECREARESQUEMA
+exit $?

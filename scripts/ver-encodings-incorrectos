@@ -1,0 +1,17 @@
+LANG=en_US.ISO85591
+cd app/php
+if grep -inarq --exclude-dir=.svn --exclude-dir=.git --color "[锝贸"
+then
+    pwd
+    echo ecnotrad
+    luit -encoding ISO-8859-1 grep -inar --exclude-dir=.svn --exclude-dir=.git --color "[锝贸"
+else
+  cd ../metadatos
+  if grep -inarq --exclude-dir=.svn --exclude-dir=.git --color "[锝贸"
+  then
+      pwd
+      luit -encoding ISO-8859-1 grep -inar --exclude-dir=.svn --exclude-dir=.git --color "[锝贸"
+  else
+      echo "Todo ok aparentemente"
+  fi
+fi

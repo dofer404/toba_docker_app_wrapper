@@ -1,0 +1,18 @@
+if [[ "$1" == "sudo" ]];
+then
+  SUDO='sudo'
+else
+  SUDO=''
+  echo "!No se usa sudo: para usar sudo invoque al script así: \$ $(basename $0) sudo"
+  echo ""
+fi
+
+
+$SUDO rm -rf app/instalacion/
+$SUDO ./scripts/docker_recrear_contenedores && {
+  sleep 5
+  ./bd/bd_app_crear.sh
+  ./bd/bd_app_recrear_esquema.sh
+  ./abrir
+  $SUDO cp scripts/aux/bases.ini app/instalacion/bases.ini
+}

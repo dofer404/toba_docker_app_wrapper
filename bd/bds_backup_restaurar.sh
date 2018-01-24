@@ -1,26 +1,16 @@
 #!/bin/bash
 
-DIRBD=`dirname $0`;
-CARPETAPROYECTO=$DIRBD/../
-DIRBK=$DIRBD/backup/
-
-PROYECTO=`cat $CARPETAPROYECTO/NOMBRE_PROYECTO`
-BASEDEDATOS=`cat $CARPETAPROYECTO/NOMBRE_BASEDEDATOS`
-BD_TOBA="<NOMBRE BASEDEDATOSTOBA>";
-HOST="pg";
-
-ARCHIVO="backup"
-ARCHIVO_TOBA="backup_toba"
-
-ARCHIVO_BACKUP=$DIRBK/$ARCHIVO
-ARCHIVO_BACKUP_TOBA=$DIRBK/$ARCHIVO_TOBA
+if [ ! $ENTORNO_SETEADO ]; then
+	$(dirname $0)/bd $(basename $0)
+	exit $?
+fi
 
 if [ -f "$ARCHIVO_BACKUP.gz" ];
 then
   set -x
   gzip -d "$ARCHIVO_BACKUP.gz"
-  $DIRBD/bd_app_crear.sh
-  psql -h $HOST -U postgres --set ON_ERROR_STOP=off $BASEDEDATOS < $ARCHIVO_BACKUP
+  $CARPETABD/bd_app_crear.sh
+  $COMANDO_PSQL --set ON_ERROR_STOP=off $BASEDEDATOS < $ARCHIVO_BACKUP
   gzip $ARCHIVO_BACKUP
   set +x
 fi
@@ -29,8 +19,8 @@ if [ -f "$ARCHIVO_BACKUP_TOBA.gz" ];
 then
   set -x
   gzip -d "$ARCHIVO_BACKUP_TOBA.gz"
-  $DIRBD/bd_toba_crear.sh
-  psql -h $HOST -U postgres --set ON_ERROR_STOP=off $BD_TOBA < $ARCHIVO_BACKUP_TOBA
+  $CARPETABD/bd_toba_crear.sh
+  $COMANDO_PSQL --set ON_ERROR_STOP=off $BD_TOBA < $ARCHIVO_BACKUP_TOBA
   gzip $ARCHIVO_BACKUP_TOBA
   set +x
 fi

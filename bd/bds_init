@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ ! $ENTORNO_SETEADO ]; then
+	$(dirname $0)/bd $(basename $0)
+	exit $?
+fi
+
+if $COMANDO_PSQL -lqt | cut -d \| -f 1 | grep -qw $BD_TOBA; then
+	echo "La base de datos de toba ($BD_TOBA), ya existe"
+else
+	echo "! NO existe la base de datos de toba ($BD_TOBA)"
+	if [ ! -f $ARCHIVO_BACKUP_TOBA ]; then
+		echo "! NO se econtró un backup de la base de datos de Toba: $ARCHIVO_BACKUP_TOBA"
+		echo "! Puede que la aplicación no se pueda acceder"
+	fi
+fi
+
+if $COMANDO_PSQL -lqt | cut -d \| -f 1 | grep -qw $BASEDEDATOS; then
+	echo "La base de datos de la aplicación ($BASEDEDATOS), ya existe"
+else
+	echo "NO existe la base de datos de la aplicacion ($BASEDEDATOS)"
+	if [ ! -f $ARCHIVO_BACKUP ]; then
+		echo "NO se econtró un backup de la base de datos de la aplicacion: $ARCHIVO_BACKUP"
+		echo "Se recrea el esquema"
+		$CMD_CREARBD && $CMD_RECREARESQUEMA
+		exit $?
+	fi
+fi
