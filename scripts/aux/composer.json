@@ -8,7 +8,8 @@
     }
   ],
   "require": {
-    "siu-toba/framework": "^3.0"    
+    "siu-toba/framework": "^3.0",
+    "siu-toba/jasper": "*"
   },
   "scripts": {
      "post-install-cmd": [
