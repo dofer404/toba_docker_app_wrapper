@@ -5,22 +5,26 @@ if [ ! $ENTORNO_SETEADO ]; then
 	exit $?
 fi
 
-if [ -f "$ARCHIVO_BACKUP.gz" ];
+if [ -f "$ARCHIVO_BACKUP_GZ" ];
 then
   set -x
-  gzip -d "$ARCHIVO_BACKUP.gz"
+  gzip -d "$ARCHIVO_BACKUP_GZ"
   $CARPETABD/bd_app_crear.sh
-  $COMANDO_PSQL --set ON_ERROR_STOP=off $BASEDEDATOS < $ARCHIVO_BACKUP
-  gzip $ARCHIVO_BACKUP
+  $COMANDO_PSQL --set ON_ERROR_STOP=off $BASEDEDATOS < $ARCHIVO_BACKUP_SUFIJO
+  gzip $ARCHIVO_BACKUP_SUFIJO
   set +x
+else
+	echo "No existe $ARCHIVO_BACKUP_GZ"
 fi
 
-if [ -f "$ARCHIVO_BACKUP_TOBA.gz" ];
-then
-  set -x
-  gzip -d "$ARCHIVO_BACKUP_TOBA.gz"
-  $CARPETABD/bd_toba_crear.sh
-  $COMANDO_PSQL --set ON_ERROR_STOP=off $BD_TOBA < $ARCHIVO_BACKUP_TOBA
-  gzip $ARCHIVO_BACKUP_TOBA
-  set +x
-fi
+# if [ -f "$ARCHIVO_BACKUP_TOBA_GZ" ];
+# then
+#   set -x
+#   gzip -d "$ARCHIVO_BACKUP_TOBA_GZ"
+#   $CARPETABD/bd_toba_crear.sh
+#   $COMANDO_PSQL --set ON_ERROR_STOP=off $BD_TOBA < $ARCHIVO_BACKUP_TOBA_SUFIJO
+#   gzip $ARCHIVO_BACKUP_TOBA_SUFIJO
+#   set +x
+# else
+# 	echo "No existe $ARCHIVO_BACKUP_TOBA_GZ"
+# fi

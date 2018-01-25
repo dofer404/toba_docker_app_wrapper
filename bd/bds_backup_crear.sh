@@ -5,8 +5,19 @@ if [ ! $ENTORNO_SETEADO ]; then
 	exit $?
 fi
 
-$COMANDO_PGDUMP $BASEDEDATOS > $DIRBK/$ARCHIVO.backup
-gzip $DIRBK/$ARCHIVO.backup
+if [ ! -d "$DIRBK" ]; then
+	echo "set -x"
+	set -x
+	mkdir "$DIRBK"
+	set +x
+fi
 
-$COMANDO_PGDUMP $BD_TOBA > $DIRBK/$ARCHIVO_TOBA.backup
-gzip $DIRBK/$ARCHIVO_TOBA.backup
+echo "Creando backups:"
+echo " $ARCHIVO_BACKUP_GZ"
+$COMANDO_PGDUMP $BASEDEDATOS > $ARCHIVO_BACKUP_SUFIJO
+gzip $ARCHIVO_BACKUP_SUFIJO
+
+echo " $ARCHIVO_BACKUP_TOBA_GZ"
+$COMANDO_PGDUMP $BD_TOBA > $ARCHIVO_BACKUP_TOBA_SUFIJO
+gzip $ARCHIVO_BACKUP_TOBA_SUFIJO
+echo ""
