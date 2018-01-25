@@ -12,6 +12,8 @@ export BD_TOBA=$(cat $CARPETAPROYECTO/NOMBRE_BASEDEDATOSTOBA)
 # Recrear esquema
 export CMD_CREARBD="$CARPETABD/bd_app_crear.sh"
 export CMD_RECREARESQUEMA="$CARPETABD/bd_app_recrear_esquema.sh"
+export CMD_RECREARBACKUPS="$CARPETABD/bds_backup_crear.sh"
+export CMD_RESTAURARBACKUPS="$CARPETABD/bds_backup_restaurar.sh"
 export CARPETASQL=$CARPETABD/sql/
 export CARPETASQL_DATOSEJ=$CARPETASQL/datos_ejemplo/
 export ARCHIVOS_INDIRECTO=$CARPETABD/bd_app_recrear_esquema_archivos.ind
@@ -76,6 +78,7 @@ if [ $5 ]; then
 fi
 
 export COMANDO_PSQL="psql -h $HOST -p $PUERTO -U postgres"
+export COMANDO_PGRESTORE="pg_restore -h $HOST -p $PUERTO -U postgres"
 export COMANDO_PGDUMP="pg_dump -h $HOST -U postgres"
 
 if [ ! $SILENCIOSO ]; then
@@ -89,5 +92,5 @@ if [ ! $SILENCIOSO ]; then
 	echo " "
 fi
 
-$CARPETABD/$1
+$CARPETABD/$1 "$4" "$5"
 exit $?

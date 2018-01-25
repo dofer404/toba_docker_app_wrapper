@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ ! $ENTORNO_SETEADO ]; then
+	$(dirname $0)/bd $(basename $0) "" "" "$1" "$2"
+	exit $?
+fi
+
+function sintaxis {
+	echo ""
+	echo "SINTAXIS: $(basename $0) PATH_CUSTOM_POSTGRES_BACKUP_FILE [{custom|plain}]"
+}
+
+function asegurarParametro1 {
+	if [ $1 ]; then
+		if [ ! -f "$1" ]; then
+			echo "Error: El archivo $1 no se contró"
+			sintaxis
+			exit 1
+		fi
+	else
+		echo "Error: No se especificó la ruta del archivo."
+		sintaxis
+		exit 2
+	fi
+}
+
+function asegurarParametro2 {
+	echo "" > /dev/null
+}
+
+asegurarParametro1 "$1"
+asegurarParametro2 "$2"
+
+echo "Drop & Create de la base de datos $BASEDEDATOS"
+$CMD_CREARBD
+echo "Importando la base de datos desde '$1'"
+if [[ "$2" = "plain" ]]; then
+	echo "Forzando el uso de plain..."
+	$COMANDO_PSQL --set ON_ERROR_STOP=off $BASEDEDATOS < "$1"
+else
+	$COMANDO_PGRESTORE -c --if-exists -d $BASEDEDATOS "$1"
+fi
+
+$CMD_RECREARBACKUPS

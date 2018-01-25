@@ -12,9 +12,7 @@ $SUDO rm -rf app/instalacion/
 $SUDO ./scripts/docker_recrear_contenedores && {
   echo "Esperando 10 segundos a que postgresql esté listo..."
   sleep 10
-  echo "app_crear.sh y recrear_esquema.sh"
-  ./bd/bd_app_crear.sh
-  ./bd/bd_app_recrear_esquema.sh
+  ./bd/bds_init force
   ./abrir-te3-en-firefox
   $SUDO cp scripts/aux/bases.ini app/instalacion/bases.ini
 }
