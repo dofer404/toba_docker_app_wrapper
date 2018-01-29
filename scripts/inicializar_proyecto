@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+DIRPROY=$(dirname $0)/../
+DIRBIN=$DIRPROY/scripts/
+
+$DIRBIN/app_set_nombre_proyecto && $DIRBIN/docker_pseudodeploy

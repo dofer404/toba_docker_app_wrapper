@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+CARPETAPROYECTO=`dirname $0`/../
+CONTENEDORAPP=`cat $CARPETAPROYECTO/NOMBRE_PROYECTO`
+CONTENEDORBD=pg
+
+set -x
+
+docker stop $CONTENEDORAPP; docker rm $CONTENEDORAPP
+docker stop $CONTENEDORBD; docker rm $CONTENEDORBD
+
+set +x

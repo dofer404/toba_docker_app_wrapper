@@ -1,0 +1,14 @@
+#!/bin/bash
+
+for archivo in $(git status $1 | grep -Po "(?<=modificado:    ).+")
+do
+	git difftool $archivo
+	read -p "Desea agregar el archivo para commitear? (S/n): "
+	respuesta="$REPLY"
+	if [ ! "$respuesta" = "n" ]; then
+		git add $archivo
+		echo "agregado: $archivo"
+	else
+		echo "salteamos: $archivo"
+	fi
+done

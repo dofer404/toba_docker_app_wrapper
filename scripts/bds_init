@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+DIRBIN=$(dirname $0)
+DIRPROY=$DIRBIN/../
+DIRAPP=$DIRPROY/app
+DIRBD=$DIRPROY/bd
+
+$DIRBD/bds_init
+exit $?

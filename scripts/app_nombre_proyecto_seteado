@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+DIRBIN=`dirname $0`
+DIRPROY=$DIRBIN/..
+DIRAPP=$DIRPROY/app
+DIRBD=$DIRPROY/bd
+
+DOCKERCOMPOSEFILE=$DIRAPP/docker-compose.yml
+COMPOSERFILE=$DIRAPP/composer.json
+
+DOCKERCOMPOSEFILE_OK=$(grep "<NOMBRE\ PROYECTO>" $DOCKERCOMPOSEFILE)
+COMPOSERFILE_OK=$(grep "siu-toba\/template-proyecto-toba" $COMPOSERFILE)
+
+MSG_PLACEHOLDERS_ENCONTRADOS="POSEE los placeholders necesarios para insertar el nombre del proyecto. ¿FALTA establecer el nombre del proyecto?"
+
+if [ "$DOCKERCOMPOSEFILE_OK" ];
+then
+  echo "Error: $DOCKERCOMPOSEFILE: $MSG_PLACEHOLDERS_ENCONTRADOS"
+  exit 1
+fi
+if [ "$COMPOSERFILE_OK" ];
+then
+  echo "Error: $COMPOSERFILE: $MSG_PLACEHOLDERS_ENCONTRADOS"
+  exit 1
+fi
+
+exit 0

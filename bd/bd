@@ -1,0 +1,96 @@
+#!/bin/bash
+
+export ENTORNO_SETEADO=1
+SILENCIOSO=1
+export HOST="pg"
+export PUERTO="5432"
+export CARPETABD=$(realpath --relative-to="$(pwd)" $(dirname $0))
+export CARPETAPROYECTO=$(realpath --relative-to="$(pwd)" $CARPETABD/../)
+export PROYECTO=$(cat $CARPETAPROYECTO/NOMBRE_PROYECTO)
+export BASEDEDATOS=$(cat $CARPETAPROYECTO/NOMBRE_BASEDEDATOS)
+export BD_TOBA=$(cat $CARPETAPROYECTO/NOMBRE_BASEDEDATOSTOBA)
+# Recrear esquema
+export CMD_CREARBD="$CARPETABD/bd_app_crear.sh"
+export CMD_RECREARESQUEMA="$CARPETABD/bd_app_recrear_esquema.sh"
+export CMD_RECREARBACKUPS="$CARPETABD/bds_backup_crear.sh"
+export CMD_RESTAURARBACKUPS="$CARPETABD/bds_backup_restaurar.sh"
+export CARPETASQL=$CARPETABD/sql/
+export CARPETASQL_DATOSEJ=$CARPETASQL/datos_ejemplo/
+export ARCHIVOS_INDIRECTO=$CARPETABD/bd_app_recrear_esquema_archivos.ind
+# Backups
+export DIRBK=$CARPETABD/backup/
+export ARCHIVOS_BACKUP_SUFIJO="-backup"
+export ARCHIVO="backup"
+export ARCHIVO_TOBA="backup_toba"
+export ARCHIVO_BACKUP=$DIRBK/$ARCHIVO
+export ARCHIVO_BACKUP_SUFIJO=$ARCHIVO_BACKUP$ARCHIVOS_BACKUP_SUFIJO
+export ARCHIVO_BACKUP_GZ="$ARCHIVO_BACKUP_SUFIJO.gz"
+export ARCHIVO_BACKUP_TOBA=$DIRBK/$ARCHIVO_TOBA
+export ARCHIVO_BACKUP_TOBA_SUFIJO=$ARCHIVO_BACKUP_TOBA$ARCHIVOS_BACKUP_SUFIJO
+export ARCHIVO_BACKUP_TOBA_GZ="$ARCHIVO_BACKUP_TOBA_SUFIJO.gz"
+
+if [ ! -f "$CARPETABD/$1" ]; then
+	echo "Orden no encontrada: $1"
+	exit 1
+fi
+
+if [ $2 ]; then
+   export HOST="$2"
+	 if [ ! $SILENCIOSO ]; then
+		 echo "Info: Definido host = $HOST"
+	 fi
+fi
+
+if [ $3 ]; then
+	export PUERTO="$3"
+	if [ ! $SILENCIOSO ]; then
+		echo "Info: Definido puerto = $PUERTO"
+	fi
+fi
+
+echo " "
+if [ $4 ]; then
+	export CARPETAPROYECTO="$4"
+	if [ ! $SILENCIOSO ]; then
+		echo "Info: Definido CARPETAPROYECTO = $CARPETAPROYECTO"
+	fi
+else
+  if [ ! -d "$CARPETAPROYECTO" ]; then
+		if [ $SILENCIOSO ]; then
+			echo "Error!: no se encontró "$CARPETAPROYECTO
+			exit 1
+		else
+			while [ ! -d "$CARPETAPROYECTO/" ]; do
+				echo "Info: no se encontró "$CARPETAPROYECTO
+				echo "Para finalizar presione Ctrl+C"
+				read -p "Para continuar ingrese el nombre de su carpeta de proyecto: "
+				export CARPETAPROYECTO="$REPLY"
+			done
+		fi
+  fi
+fi
+
+if [ $5 ]; then
+   export PROYECTO="$5"
+	 if [ ! $SILENCIOSO ]; then
+		 echo "Info: Definido proyecto = $PROYECTO"
+	 fi
+fi
+
+export COMANDO_PSQL="psql -h $HOST -p $PUERTO -U postgres"
+export COMANDO_PGRESTORE="pg_restore -h $HOST -p $PUERTO -U postgres"
+export COMANDO_PGDUMP="pg_dump -h $HOST -U postgres"
+
+if [ ! $SILENCIOSO ]; then
+	echo "Info: Se asume que el proyecto se encuentra en $CARPETAPROYECTO; host=$HOST; puerto=$PUERTO; proyecto=$PROYECTO"
+	echo " "
+	echo "Info: Si postgres te pide la contraseña una y otra vez, y querés que"
+	echo " pare de hacerlo, creá el archivo de texto ~/.pgpass"
+	echo " (con el  comando: gedit ~/.pgpass)"
+	echo " y dentro del archivo guardá la siguiente línea de texto:"
+	echo " localhost:5432:*:postgres:tucontraseña"
+	echo " "
+fi
+
+$CARPETABD/$1 "$4" "$5"
+exit $?

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+DIRBIN=$(dirname $0)
+DIRPROY=$DIRBIN/..
+DIRAPP=$DIRPROY/app
+DIRBD=$DIRPROY/bd
+
+PLACEHOLDER_NOMBREBASE="<NOMBRE\ BASEDEDATOS>"
+PLACEHOLDER_NOMBREESQUEMA="<NOMBRE\ ESQUEMABD>"
+PLACEHOLDER_NOMBREBASETOBA="<NOMBRE\ BASEDEDATOSTOBA>"
+
+# APP
+  DOCKERCOMPOSEFILE=$DIRAPP/docker-compose.yml
+  COMPOSERFILE=$DIRAPP/composer.json
+
+  DOCKERCOMPOSEFILE_OK=$(grep "<NOMBRE\ PROYECTO>" $DOCKERCOMPOSEFILE)
+  COMPOSERFILE_OK=$(grep "siu-toba\/template-proyecto-toba" $COMPOSERFILE)
+  ERRORPLACEHOLDER="contiene los placeholders necesarios para insertar el nombre. ya estableció el nombre del proyecto?"
+
+  if [ "$DOCKERCOMPOSEFILE_OK" ];
+  then
+    echo "Error en $DOCKERCOMPOSEFILE: $ERRORPLACEHOLDER"
+    exit 1
+  fi
+  if [ "$COMPOSERFILE_OK" ];
+  then
+    echo "Error en $COMPOSERFILE: $ERRORPLACEHOLDER"
+    exit 1
+  fi
+
+# BD
+  CREARBDFILE=$DIRBD/bd_app_crear.sql
+	CREARSCHFILE=$DIRBD/bd_app_crear_esquema.sql
+  CREARBDTOBAFILE_SQL=$DIRBD/bd_toba_crear.sql
+
+	CREARBDFILE_OK=$(grep "$PLACEHOLDER_NOMBREBASE" $CREARBDFILE)
+	CREARSCHFILE_OK=$(grep "$PLACEHOLDER_NOMBREESQUEMA" $CREARSCHFILE)
+  CREARBDTOBAFILE_SQL_OK=$(grep "$PLACEHOLDER_NOMBREBASETOBA" $CREARBDTOBAFILE_SQL)
+
+  MSG_SIN_PLACEHOLDERS="contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
+  if [ "$CREARBDFILE_OK" ];
+  then
+    echo "Error en $CREARBDFILE: $MSG_SIN_PLACEHOLDERS"
+    exit 1
+  fi
+  if [ "$CREARSCHFILE_OK" ];
+  then
+    echo "Error en $CREARSCHFILE: $MSG_SIN_PLACEHOLDERS"
+    exit 1
+  fi
+  if [ "$CREARBDTOBAFILE_SQL_OK" ];
+  then
+    echo "Error en $CREARBDTOBAFILE_SQL: $MSG_SIN_PLACEHOLDERS"
+    exit 1
+  fi
+
+exit 0

@@ -1,0 +1,41 @@
+#!/bin/bash
+
+if [ ! $ENTORNO_SETEADO ]; then
+	$(dirname $0)/bd $(basename $0) "" "" "$1"
+	exit $?
+fi
+
+if $COMANDO_PSQL -lqt | cut -d \| -f 1 | grep -qw $BD_TOBA; then
+	echo "La base de datos de toba ($BD_TOBA), ya existe"
+else
+	echo "! NO existe la base de datos de toba ($BD_TOBA)"
+	if [ ! -f $ARCHIVO_BACKUP_TOBA_GZ ]; then
+		echo "! NO se econtró un backup de la base de datos de Toba: $ARCHIVO_BACKUP_TOBA_GZ"
+		echo "! Puede que la aplicación no se pueda acceder"
+	fi
+fi
+
+if $COMANDO_PSQL -lqt | cut -d \| -f 1 | grep -qw $BASEDEDATOS; then
+	echo "La base de datos de la aplicación ($BASEDEDATOS), ya existe"
+	if [ "$1" ]; then
+		if [[ "$1" = "force" ]]; then
+			echo "  El parámetro 'force' fuerza la inicializacion igualmente"
+			INICILIZAR_BD=1
+		fi
+	fi
+else
+	echo "NO existe la base de datos de la aplicacion ($BASEDEDATOS)"
+	INICILIZAR_BD=1
+fi
+
+if [ "$INICILIZAR_BD" ]; then
+	if [ ! -f $ARCHIVO_BACKUP_GZ ]; then
+		echo "NO se econtró un backup de la base de datos de la aplicacion: $ARCHIVO_BACKUP_GZ"
+		echo "Se recrea el esquema"
+		$CMD_CREARBD && $CMD_RECREARESQUEMA
+		exit $?
+	else
+		echo "Restaurando backup $ARCHIVO_BACKUP_GZ"
+		$CMD_RESTAURARBACKUPS
+	fi
+fi

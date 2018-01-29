@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+DIRBIN=`dirname $0`/
+
+$DIRBIN/docker_quitar_contenedores
+$DIRBIN/docker_compose_up && exit 0
+
+exit 1

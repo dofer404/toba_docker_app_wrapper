@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+
+DIRBIN=`dirname $0`
+DIRPROY=$DIRBIN/../
+DIRAPP=$DIRPROY/app
+DIRBD=$DIRPROY/bd
+ARCH_NOMBRE_BASEDEDATOS="$DIRPROY/NOMBRE_BASEDEDATOS"
+ARCH_NOMBRE_ESQUEMABD="$DIRPROY/NOMBRE_ESQUEMABD"
+ARCH_NOMBRE_BASEDEDATOS_AUTO="$DIRPROY/NOMBRE_BASEDEDATOS_AUTO"
+ARCH_NOMBRE_BASEDEDATOSTOBA="$DIRPROY/NOMBRE_BASEDEDATOSTOBA"
+NOMBRE_BASEDEDATOSTOBA_DEFECTO="toba_3"
+
+PLACEHOLDER_NOMBREBASE="<NOMBRE\ BASEDEDATOS>"
+PLACEHOLDER_NOMBREESQUEMA="<NOMBRE\ ESQUEMABD>"
+PLACEHOLDER_NOMBREBASETOBA="<NOMBRE\ BASEDEDATOSTOBA>"
+
+if [ -f $ARCH_NOMBRE_BASEDEDATOS ];
+then
+  NOMBRE_BASEDEDATOS=$(cat $ARCH_NOMBRE_BASEDEDATOS)
+  if [ -f $ARCH_NOMBRE_BASEDEDATOS_AUTO ];
+  then
+    rm $ARCH_NOMBRE_BASEDEDATOS_AUTO
+  fi
+else
+  if [ -f $ARCH_NOMBRE_BASEDEDATOS_AUTO ];
+  then
+    NOMBRE_BASEDEDATOS=$(cat $ARCH_NOMBRE_BASEDEDATOS_AUTO)
+
+    echo ""
+    echo "Creando $(realpath --relative-to="$DIRPROY" $ARCH_NOMBRE_BASEDEDATOS)..."
+    echo $NOMBRE_BASEDEDATOS > $ARCH_NOMBRE_BASEDEDATOS
+    rm $ARCH_NOMBRE_BASEDEDATOS_AUTO
+    echo "...echo."
+  else
+    echo "No se puede nombrar la base de datos porque no existe el archivo '$(realpath --relative-to="$DIRPROY" $ARCH_NOMBRE_BASEDEDATOS)'"
+    exit 1
+  fi
+fi
+
+if [ -f $ARCH_NOMBRE_ESQUEMABD ];
+then
+  NOMBRE_ESQUEMABD=$(cat $ARCH_NOMBRE_ESQUEMABD)
+else
+  echo "No se puede nombrar la base de datos porque no existe el archivo '$(realpath --relative-to="$DIRPROY" $ARCH_NOMBRE_ESQUEMABD)'"
+  exit 2
+fi
+
+if [ -f $ARCH_NOMBRE_BASEDEDATOSTOBA ];
+then
+  NOMBRE_BASEDEDATOSTOBA=$(cat $ARCH_NOMBRE_BASEDEDATOSTOBA)
+else
+  NOMBRE_BASEDEDATOSTOBA=$NOMBRE_BASEDEDATOSTOBA_DEFECTO
+
+  echo ""
+  echo "Advertencia: no existe el archivo '$(realpath --relative-to="$DIRPROY" $ARCH_NOMBRE_BASEDEDATOSTOBA)':"
+  echo " Como nombre de la base de datos de toba se usa: $(realpath --relative-to="$DIRPROY" $NOMBRE_BASEDEDATOSTOBA_DEFECTO)"
+  echo ""
+fi
+
+CREARBDFILE=$DIRBD/bd_app_crear.sql
+CREARSCHFILE=$DIRBD/bd_app_crear_esquema.sql
+CREARBDTOBAFILE_SQL=$DIRBD/bd_toba_crear.sql
+MSG_404_FILE="No se encontró el archivo"
+
+if [ ! -f $CREARBDFILE ]; then
+	echo "Error: $(realpath --relative-to="$DIRPROY" $CREARBDFILE): $MSG_404_FILE"
+  exit 3
+fi
+if [ ! -f $CREARSCHFILE ]; then
+	echo "Error: $(realpath --relative-to="$DIRPROY" $CREARSCHFILE): $MSG_404_FILE"
+  exit 3
+fi
+if [ ! -f $CREARBDTOBAFILE_SQL ]; then
+	echo "Error: $(realpath --relative-to="$DIRPROY" $CREARBDTOBAFILE_SQL): $MSG_404_FILE"
+  exit 3
+fi
+
+CREARBDFILE_OK=$(grep "$PLACEHOLDER_NOMBREBASE" $CREARBDFILE)
+CREARSCHFILE_OK=$(grep "$PLACEHOLDER_NOMBREESQUEMA" $CREARSCHFILE)
+CREARBDTOBAFILE_SQL_OK=$(grep "$PLACEHOLDER_NOMBREBASETOBA" $CREARBDTOBAFILE_SQL)
+
+MSG_SIN_PLACEHOLDERS="no contiene los placeholders necesarios para insertar el nombre. Ya estableció el nombre del proyecto?"
+if [ ! "$CREARBDFILE_OK" ];
+then
+  echo "Error: $(realpath --relative-to="$DIRPROY" $CREARBDFILE): $MSG_SIN_PLACEHOLDERS"
+  exit 3
+fi
+if [ ! "$CREARSCHFILE_OK" ];
+then
+  echo "Error: $(realpath --relative-to="$DIRPROY" $CREARSCHFILE): $MSG_SIN_PLACEHOLDERS"
+  exit 3
+fi
+if [ ! "$CREARBDTOBAFILE_SQL_OK" ];
+then
+  echo "Error: $(realpath --relative-to="$DIRPROY" $CREARBDTOBAFILE_SQL): $MSG_SIN_PLACEHOLDERS"
+  exit 4
+fi
+
+ARCHIVO_TOBA_BASES_INI_GENERICO="$DIRBIN/aux/bases_generico.ini"
+ARCHIVO_TOBA_BASES_INI_READY="$DIRBIN/aux/bases.ini"
+ARCHIVO_TOBA_BASES_INI_BACKUP="$DIRBIN/aux/bases_BAK.ini"
+ARCHIVO_TOBA_BASES_INI_APP="$DIRAPP/instalacion/bases.ini"
+
+if [ ! -f $ARCHIVO_TOBA_BASES_INI_READY ];
+then
+  echo "Error: No se encontró el archivo $(realpath --relative-to="$DIRPROY" $ARCHIVO_TOBA_BASES_INI_READY). Estableció el nombre del proyecto?"
+  exit 7
+fi
+
+cp $CREARBDTOBAFILE_SQL $CREARBDFILE $CREARSCHFILE $DIRBIN/aux/
+
+if [ -f $ARCHIVO_TOBA_BASES_INI_APP ];
+then
+  cp $ARCHIVO_TOBA_BASES_INI_APP $ARCHIVO_TOBA_BASES_INI_BACKUP
+fi
+
+sed -i "s/$PLACEHOLDER_NOMBREBASE/$NOMBRE_BASEDEDATOS/g" $CREARBDFILE
+sed -i "s/$PLACEHOLDER_NOMBREESQUEMA/$NOMBRE_ESQUEMABD/g" $CREARSCHFILE
+sed -i "s/$PLACEHOLDER_NOMBREBASE/$NOMBRE_BASEDEDATOS/g" $ARCHIVO_TOBA_BASES_INI_READY
+sed -i "s/$PLACEHOLDER_NOMBREESQUEMA/$NOMBRE_ESQUEMABD/g" $ARCHIVO_TOBA_BASES_INI_READY
+sed -i "s/$PLACEHOLDER_NOMBREBASETOBA/$NOMBRE_BASEDEDATOSTOBA/g" $ARCHIVO_TOBA_BASES_INI_READY
+sed -i "s/$PLACEHOLDER_NOMBREBASETOBA/$NOMBRE_BASEDEDATOSTOBA/g" $CREARBDTOBAFILE_SQL
+
+cp $ARCHIVO_TOBA_BASES_INI_READY $ARCHIVO_TOBA_BASES_INI_APP
+
+exit 0
