@@ -32,11 +32,11 @@ git clone $(cat PATH-REPO-template-proyecto-toba) app && {
 			./bin/init/toba-descargar
 			set +x
 
-			NOMBRE_PROYECTO=$(sed -nE 's/^[ \t]*id[ \t]*=[ \t]*([a-zA-Z0-9]+).*$/\1/p' proyecto.ini);
+			NOMBRE_PROYECTO=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-proyecto.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
 			echo "El nombre del proyecto es \"$NOMBRE_PROYECTO\""
-			NOMBRE_BASEDEDATOS=$(sed -nE 's/^[ \t]*schema[ \t]*=[ \t]*([a-zA-Z0-9]+).*$/\1/p' proyecto.ini);
+			NOMBRE_BASEDEDATOS=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-instancia_id.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
 			echo "El nombre de la base de datos es \"$NOMBRE_BASEDEDATOS\""
-			NOMBRE_ESQUEMA=$(sed -nE "s/^[ \t]*'([a-zA-Z0-9_]+)'[, \t-]*schema.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
+			NOMBRE_ESQUEMA=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-schema.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
 			echo "El nombre del esquema es \"$NOMBRE_ESQUEMA\""
 			echo "toba_$NOMBRE_PROYECTO" > ../wrapper/NOMBRE_BASEDEDATOSTOBA
 			echo "$NOMBRE_BASEDEDATOS" > ../wrapper/NOMBRE_BASEDEDATOS
