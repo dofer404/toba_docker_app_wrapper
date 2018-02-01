@@ -59,14 +59,12 @@ echo "Clonando repositorio template-proyecto-toba (en app)" | tee "$f"
 
 			echo "Analizando proyecto 'app' y configurando 'wrapper'
   Configurando nombres" | tee -a "$f"
-			{
-				NOMBRE_PROYECTO=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-proyecto.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
-				echo "    El nombre del proyecto es \"$NOMBRE_PROYECTO\""
-				NOMBRE_BASEDEDATOS=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-instancia_id.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
-				echo "    El nombre de la base de datos es \"$NOMBRE_BASEDEDATOS\""
-				NOMBRE_ESQUEMA=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-schema.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
-				echo "    El nombre del esquema es \"$NOMBRE_ESQUEMA\""
-			} | tee -a "$f"
+			NOMBRE_PROYECTO=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-proyecto.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
+			echo "    El nombre del proyecto es \"$NOMBRE_PROYECTO\"" | tee -a "$f"
+			NOMBRE_BASEDEDATOS=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-instancia_id.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
+			echo "    El nombre de la base de datos es \"$NOMBRE_BASEDEDATOS\"" | tee -a "$f"
+			NOMBRE_ESQUEMA=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-schema.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
+			echo "    El nombre del esquema es \"$NOMBRE_ESQUEMA\"" | tee -a "$f"
 
 			echo "toba_$NOMBRE_PROYECTO" > ../wrapper/NOMBRE_BASEDEDATOSTOBA
 			echo "$NOMBRE_BASEDEDATOS" > ../wrapper/NOMBRE_BASEDEDATOS
