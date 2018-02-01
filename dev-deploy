@@ -1,18 +1,40 @@
+#!/bin/bash
+
+d=$(dirname $0)
+f=$(basename $0).log
+
+rm "$d/$f"
+
 if [[ "$1" == "sudo" ]];
 then
   SUDO='sudo'
 else
   SUDO=''
-  echo "!No se usa sudo: para usar sudo invoque al script así: \$ $(basename $0) sudo"
-  echo ""
+  echo "No se usa sudo!
+Para usar sudo invoque al script así: \$ $(basename $0) sudo
+" | tee -a "$d/$f"
 fi
 
-
-$SUDO rm -rf app/instalacion/
-$SUDO ./scripts/docker_recrear_contenedores && {
-  echo "Esperando 10 segundos a que postgresql esté listo..."
+dinst="app/instalacion/"
+echo "Quitando '$dinst'" | tee -a "$d/$f"
+$SUDO rm -rf "$dinst" >>"$d/$f" 2>&1
+echo "Recreando contenedores" | tee -a "$d/$f"
+{
+  $SUDO ./scripts/docker_recrear_contenedores >>"$d/$f" 2>&1
+} && {
+  echo "Esperando 10 segundos a que postgresql esté listo" | tee -a "$d/$f"
   sleep 10
-  ./bd/bds_init force
-  ./abrir-te3-en-firefox
-  $SUDO cp scripts/aux/bases.ini app/instalacion/bases.ini
+  echo "Inicializando bases de datos" | tee -a "$d/$f"
+  ./bd/bds_init force >>"$d/$f" 2>&1
+  echo "Abriendo firefox" | tee -a "$d/$f"
+  ./abrir-te3-en-firefox >>"$d/$f" 2>&1
+  fbase="scripts/aux/bases.ini"
+  fbasedest="app/instalacion/bases.ini"
+  echo "Copiando '$fbase' a '$fbasedest'" | tee -a "$d/$f"
+  $SUDO cp "$fbase" "$fbasedest" >>"$d/$f" 2>&1
+  echo "Listo." | tee -a "$d/$f"
+} || {
+  echo "
+Error!
+Falló la recreación de contenedores (debería usar sudo?)" | tee -a "$d/$f"
 }
