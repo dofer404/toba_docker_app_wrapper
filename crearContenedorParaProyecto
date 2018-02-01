@@ -1,136 +1,186 @@
 #!/bin/bash
 
+f="$(basename $0).log"
+
 if [[ "$1" = "--ejemplo" ]]; then
-	echo "Se genera el archivo PATH-REPO-template-proyecto-toba con la ruta:"
-	echo "https://github.com/dofer404/template-proyecto-toba.git" | tee PATH-REPO-template-proyecto-toba
-	echo ""
-	echo "Se genera el archivo PATH-REPO-toba_docker_app_wrapper con la ruta:"
-	echo "https://github.com/dofer404/toba_docker_app_wrapper.git" | tee PATH-REPO-toba_docker_app_wrapper
-	echo ""
-	echo "Se genera el archivo URL_PROYECTO con la ruta:"
-	echo "https://github.com/dofer404/aprender.git" | tee -a URL_PROYECTO
-	echo ""
-	echo "Si posee un backup de la base de datos de la aplicacion en formato plano puede guardarlo con nombre 'backup-plain' y será tomado por el script para levantar la app" | tee backup-plain.txt
-	echo ""
-	echo "Si posee un script sql que genere el modelo de la base de datos de la aplicacion puede guardarlo con nombre 'modelo.sql' y será tomado por el script para levantar la app (si posee un backup y lo configura, el backup será tomado en vez del script sql del modelo)" | tee modelo.sql.txt
-	echo ""
-	echo "Si posee un script sql que agrega datos a la base de datos de la aplicacion puede guardarlo con nombre 'datos.sql' y será tomado por el script para levantar la app (si posee un backup y lo configura, el backup será tomado en vez del script sql de datos)" | tee datos.sql.txt
+	{
+		echo "Se genera el archivo PATH-REPO-template-proyecto-toba con la ruta:"
+		echo "https://github.com/dofer404/template-proyecto-toba.git" | tee PATH-REPO-template-proyecto-toba
+		echo ""
+		echo "Se genera el archivo PATH-REPO-toba_docker_app_wrapper con la ruta:"
+		echo "https://github.com/dofer404/toba_docker_app_wrapper.git" | tee PATH-REPO-toba_docker_app_wrapper
+		echo ""
+		echo "Se genera el archivo URL_PROYECTO con la ruta:"
+		echo "https://github.com/dofer404/aprender.git" | tee -a URL_PROYECTO
+		echo ""
+		echo "Si posee un backup de la base de datos de la aplicacion en formato plano puede guardarlo con nombre 'backup-plain' y será tomado por el script para levantar la app" | tee backup-plain.txt
+		echo ""
+		echo "Si posee un script sql que genere el modelo de la base de datos de la aplicacion puede guardarlo con nombre 'modelo.sql' y será tomado por el script para levantar la app (si posee un backup y lo configura, el backup será tomado en vez del script sql del modelo)" | tee modelo.sql.txt
+		echo ""
+		echo "Si posee un script sql que agrega datos a la base de datos de la aplicacion puede guardarlo con nombre 'datos.sql' y será tomado por el script para levantar la app (si posee un backup y lo configura, el backup será tomado en vez del script sql de datos)" | tee datos.sql.txt
+	} | tee "$f"
 	exit 0
 fi
 
-set -x
-# git clone https://github.com/dofer404/template-proyecto-toba.git app
-git clone $(cat PATH-REPO-template-proyecto-toba) app && {
-	# git clone https://github.com/dofer404/toba_docker_app_wrapper.git app
-	git clone $(cat PATH-REPO-toba_docker_app_wrapper) wrapper && {
-		rm -rf app/.git
-		cd app
-		git clone $(cat ../URL_PROYECTO) proyecto && {
-			mv proyecto/.git .git
-			rm -rf proyecto
-			git checkout .
-			./bin/init/toba-descargar
-			set +x
+dirs="app wrapper"
+for dir in $dirs; do
+	if [ -d "$dir" ]; then
+		echo "Error! Ya existe la subcarpeta '$dir' en la carpeta actual" | tee "$f"
+		exit 4
+	fi
+	if [ -f "$dir" ]; then
+		echo "Error! Existe un archivo llamado '$dir' en la carpeta actual" | tee "$f"
+		exit 4
+	fi
+done;
 
-			NOMBRE_PROYECTO=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-proyecto.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
-			echo "El nombre del proyecto es \"$NOMBRE_PROYECTO\""
-			NOMBRE_BASEDEDATOS=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-instancia_id.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
-			echo "El nombre de la base de datos es \"$NOMBRE_BASEDEDATOS\""
-			NOMBRE_ESQUEMA=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-schema.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
-			echo "El nombre del esquema es \"$NOMBRE_ESQUEMA\""
+echo "Clonando repositorio template-proyecto-toba (en app)" | tee "$f"
+# git clone https://github.com/dofer404/template-proyecto-toba.git app
+{
+	git clone $(cat PATH-REPO-template-proyecto-toba) app >> "$f" 2>&1
+} && {
+	echo "Clonando repositorio toba_docker_app_wrapper (en wrapper)" | tee -a "$f"
+	# git clone https://github.com/dofer404/toba_docker_app_wrapper.git app
+	{
+		git clone $(cat PATH-REPO-toba_docker_app_wrapper) wrapper >> "$f" 2>&1
+	} && {
+		URL_PROYECTO=$(cat URL_PROYECTO) >> "$f" 2>&1
+		echo "Clonando repositorio '$URL_PROYECTO' (sobre app)" | tee -a "$f"
+		rm -rf app/.git >> "$f" 2>&1
+		cd app >> "$f" 2>&1; f="../$f";
+		{
+			git clone "$URL_PROYECTO" proyecto >> "$f" 2>&1
+		} && {
+			mv proyecto/.git .git >> "$f" 2>&1
+			rm -rf proyecto >> "$f" 2>&1
+			git checkout . >> "$f" 2>&1
+			echo "Descargando toba (en app/vendor)" | tee -a "$f"
+			./bin/init/toba-descargar >> "$f" 2>&1
+
+			echo "Analizando proyecto 'app' y configurando 'wrapper'
+  Configurando nombres" | tee -a "$f"
+			{
+				NOMBRE_PROYECTO=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-proyecto.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
+				echo "    El nombre del proyecto es \"$NOMBRE_PROYECTO\""
+				NOMBRE_BASEDEDATOS=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-instancia_id.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
+				echo "    El nombre de la base de datos es \"$NOMBRE_BASEDEDATOS\""
+				NOMBRE_ESQUEMA=$(sed -nE "s/^[ \t]*'([^']+)'[, \t-]*\-schema.*/\1/p" metadatos/tablas/apex_fuente_datos.sql);
+				echo "    El nombre del esquema es \"$NOMBRE_ESQUEMA\""
+			} | tee -a "$f"
+
 			echo "toba_$NOMBRE_PROYECTO" > ../wrapper/NOMBRE_BASEDEDATOSTOBA
 			echo "$NOMBRE_BASEDEDATOS" > ../wrapper/NOMBRE_BASEDEDATOS
 			echo "$NOMBRE_ESQUEMA" > ../wrapper/NOMBRE_ESQUEMABD
 			echo "$NOMBRE_PROYECTO" > ../wrapper/NOMBRE_PROYECTO
 
-			set -x
-			cd ../wrapper
-			rm -rf app
-			mv ../app .
-			./scripts/proyecto_set_nombre "$NOMBRE_PROYECTO"
-			echo ".gitignore
-			bin/
-			composer.json
-			composer.lock
-			docker-compose.yml" | tee -a app/.gitignore
-			set +x
+			{
+				cd ../wrapper
+				rm -rf app
+				mv ../app .
+				set -x
+				./scripts/proyecto_set_nombre "$NOMBRE_PROYECTO"
+				set +x
+				echo ".gitignore
+				bin/
+				composer.json
+				composer.lock
+				docker-compose.yml" >> app/.gitignore
+		  } >> "$f" 2>&1
 
+			echo "  Configurando bases" | tee -a "$f"
 			PLAINBACKUP="../backup-plain"
 			if [ -f $PLAINBACKUP ]; then
 				BACKUPDIR='bd/backup'
 				OUTBACKUPDIR='../..'
 				BACKUFILE='backup-backup'
 
-				echo "Se encontro $PLAINBACKUP, se copia a '$BACKUPDIR/$BACKUFILE' y comprime con gzip"
+				echo "    Se encontró $(basename $PLAINBACKUP), se copia a '$BACKUPDIR/$BACKUFILE' y se comprime con gzip" | tee -a "$f"
 
-				mkdir "$BACKUPDIR"
-				cp "$PLAINBACKUP" "$BACKUPDIR/$BACKUFILE"
-				cd "$BACKUPDIR"
-				gzip "$BACKUFILE"
-				cd "$OUTBACKUPDIR"
+				{
+					mkdir "$BACKUPDIR" && {
+						cp "$PLAINBACKUP" "$BACKUPDIR/$BACKUFILE" && {
+							cd "$BACKUPDIR" && {
+								gzip "$BACKUFILE"
+								cd "$OUTBACKUPDIR"
+							}
+						}
+					}
+				} >> "$f" 2>&1
 			else
-				echo "NO se encontro $PLAINBACKUP"
+				echo "    NO se encontró $PLAINBACKUP" >> "$f" 2>&1
 				SCRIPT_SQL_MODELO="../modelo.sql"
 				SCRIPT_SQL_MODELO_APP="bd/sql/modelo.sql"
 				if [ -f "$SCRIPT_SQL_MODELO" ]; then
-					echo "Se encontró $SCRIPT_SQL_MODELO, se copia a $SCRIPT_SQL_MODELO_APP"
-					cp "$SCRIPT_SQL_MODELO" "$SCRIPT_SQL_MODELO_APP"
+					echo "    Se encontró $SCRIPT_SQL_MODELO, se copia a $SCRIPT_SQL_MODELO_APP" | tee -a "$f"
+					cp "$SCRIPT_SQL_MODELO" "$SCRIPT_SQL_MODELO_APP" >> "$f" 2>&1
 				else
 					echo ""
-					echo "No se encontró un script de creación del modelo de datos en $SCRIPT_SQL_MODELO. Si tiene uno, ubíquelo en '$SCRIPT_SQL_MODELO_APP' al finalizar este script."
-					echo "" | tee "$SCRIPT_SQL_MODELO_APP"
+					echo "    No se encontró un script de creación del modelo de datos en $SCRIPT_SQL_MODELO. Si tiene uno, ubíquelo en '$SCRIPT_SQL_MODELO_APP' al finalizar este script." | tee -a "$f"
+					echo "" > "$SCRIPT_SQL_MODELO_APP"
 				fi
 
 				SCRIPT_SQL_DATOS="../datos.sql"
 				SCRIPT_SQL_DATOS_APP="bd/sql/datos.sql"
 				if [ -f "$SCRIPT_SQL_DATOS" ]; then
-					echo "Se encontró $SCRIPT_SQL_DATOS, se copia a $SCRIPT_SQL_DATOS_APP"
-					cp "$SCRIPT_SQL_DATOS" "$SCRIPT_SQL_DATOS_APP"
+					echo "    Se encontró $SCRIPT_SQL_DATOS, se copia a $SCRIPT_SQL_DATOS_APP" >> "$f" 2>&1
+					cp "$SCRIPT_SQL_DATOS" "$SCRIPT_SQL_DATOS_APP" >> "$f" 2>&1
 				else
 					echo ""
-					echo "No se encontró un script de carga de datos en $SCRIPT_SQL_DATOS. Si tiene uno, ubíquelo en $SCRIPT_SQL_DATOS_APP al finalizar este script."
-					echo "" | tee $SCRIPT_SQL_DATOS_APP
+					echo "    No se encontró un script de carga de datos en $SCRIPT_SQL_DATOS. Si tiene uno, ubíquelo en $SCRIPT_SQL_DATOS_APP al finalizar este script." | tee -a "$f"
+					echo "" > $SCRIPT_SQL_DATOS_APP
 				fi
 			fi
+
+			echo "Iniciando dev-deploy" | tee -a "$f"
 
 			SUDO=
 			if [ $1 ]; then
 				if [[ "$1" = "sudo" ]]; then
 					SUDO="sudo"
+				else
+					echo "  No se usa 'sudo'!" | tee -a "$f"
 				fi
+			else
+				echo "  No se usa 'sudo'!" | tee -a "$f"
 			fi
 
-			set -x
-			./dev-deploy "$SUDO"
-			set +x
-
-			echo ""
-			echo "Listo."
-			echo ""
-
+			{
+				./dev-deploy "$SUDO" >> "$f" 2>&1
+			} && {
+				echo "" | tee -a "$f"
+				echo "Listo." | tee -a "$f"
+			} || {
+				echo "" | tee -a "$f"
+				echo "Error! Falló dev-deploy" | tee -a "$f"
+			}
 			exit 0
 		}
-		cd ..
-		rm -rf app
-		rm -rf wrapper
-		set +x
-		echo ""
-		echo "Error! falló al obtener el repositorio git del proyecto en la URL $(cat URL_PROYECTO)"
-		echo "Corrija la URL en el archivo: URL_PROYECTO"
-		echo ""
+		{
+			cd ..; f="$(basename $f)"
+			rm -rf app
+			rm -rf wrapper
+		} >> "$f" 2>&1
+		{
+			echo ""
+			echo "Error! falló al obtener el repositorio git del proyecto de la URL $(cat URL_PROYECTO)"
+			echo "Verifique el archivo './URL_PROYECTO'"
+			echo ""
+		} | tee -a "$f"
 		exit 1
 	}
 	rm -rf app
-	set +x
-	echo ""
-	echo "Error! falló al obtener el repositorio git de toba-docker-app-wrapper en la URL $(cat PATH-REPO-toba_docker_app_wrapper)"
-	echo "Corrija la URL en el archivo: PATH-REPO-toba_docker_app_wrapper"
-	echo ""
+	{
+		echo ""
+		echo "Error! falló al obtener el repositorio git de toba-docker-app-wrapper en la URL $(cat PATH-REPO-toba_docker_app_wrapper)"
+		echo "Verifique el archivo './PATH-REPO-toba_docker_app_wrapper'"
+		echo ""
+	} | tee -a "$f"
 	exit 2
 }
-set +x
-echo ""
-echo "Error! falló al obtener el repositorio git de template-proyecto-toba en la URL $(cat PATH-REPO-template-proyecto-toba)"
-echo "Corrija la URL en el archivo: PATH-REPO-template-proyecto-toba"
-echo ""
+{
+	echo ""
+	echo "Error! falló al obtener el repositorio git de template-proyecto-toba en la URL $(cat PATH-REPO-template-proyecto-toba)"
+	echo "Verifique el archivo './PATH-REPO-template-proyecto-toba'"
+	echo ""
+} | tee -a "$f"
 exit 3
