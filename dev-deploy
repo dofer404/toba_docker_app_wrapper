@@ -3,7 +3,7 @@
 d=$(dirname $0)
 f=$(basename $0).log
 
-rm "$d/$f"
+rm -f "$d/$f"
 
 if [[ "$1" == "sudo" ]];
 then
@@ -33,8 +33,10 @@ echo "Recreando contenedores" | tee -a "$d/$f"
   echo "Copiando '$fbase' a '$fbasedest'" | tee -a "$d/$f"
   $SUDO cp "$fbase" "$fbasedest" >>"$d/$f" 2>&1
   echo "Listo." | tee -a "$d/$f"
+  exit 0
 } || {
   echo "
 Error!
 Falló la recreación de contenedores (debería usar sudo?)" | tee -a "$d/$f"
+  exit 1
 }
