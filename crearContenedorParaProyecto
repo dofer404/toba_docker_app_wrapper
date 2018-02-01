@@ -75,9 +75,7 @@ echo "Clonando repositorio template-proyecto-toba (en app)" | tee "$f"
 				cd ../wrapper
 				rm -rf app
 				mv ../app .
-				set -x
 				./scripts/proyecto_set_nombre "$NOMBRE_PROYECTO"
-				set +x
 				echo ".gitignore
 				bin/
 				composer.json
@@ -150,6 +148,11 @@ echo "Clonando repositorio template-proyecto-toba (en app)" | tee "$f"
 			} || {
 				echo "" | tee -a "$f"
 				echo "Error! Falló dev-deploy" | tee -a "$f"
+				echo "-----------------------"
+				echo "A continuación el log de dev-deploy:"
+				set -x
+				cat ./dev-deploy.log
+				set +x
 			}
 			exit 0
 		}
